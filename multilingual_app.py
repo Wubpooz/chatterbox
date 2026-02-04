@@ -67,6 +67,10 @@ LANGUAGE_CONFIG = {
         "audio": "https://storage.googleapis.com/chatterbox-demo-samples/mtl_prompts/ms_f.flac",
         "text": "Bulan lepas, kami mencapai pencapaian baru dengan dua bilion tontonan di saluran YouTube kami."
     },
+    "mt": {
+        "audio": "https://storage.googleapis.com/chatterbox-demo-samples/mtl_prompts/ar_f/ar_prompts2.flac",
+        "text": "Ix-xahar li għadda, laħaqna marka ġdida b'żewġ biljun vista fuq il-kanal tagħna tal-YouTube."
+    },
     "nl": {
         "audio": "https://storage.googleapis.com/chatterbox-demo-samples/mtl_prompts/nl_m.flac",
         "text": "Vorige maand bereikten we een nieuwe mijlpaal met twee miljard weergaven op ons YouTube-kanaal."

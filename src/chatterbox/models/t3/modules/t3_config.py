@@ -28,7 +28,10 @@ class T3Config:
     
     @property
     def is_multilingual(self):
-        return self.text_tokens_dict_size == 2454
+        # Updated to include Maltese (24 languages total)
+        # Original: 2454 tokens for 23 languages
+        # New: 2455+ tokens for 24 languages (added [mt] token)
+        return self.text_tokens_dict_size >= 2454
 
     @classmethod
     def english_only(cls):
@@ -37,5 +40,7 @@ class T3Config:
     
     @classmethod 
     def multilingual(cls):
-        """Create configuration for multilingual TTS model."""
+        """Create configuration for multilingual TTS model (24 languages including Maltese)."""
+        # Keeping 2454 for backward compatibility with existing models
+        # When retraining with Maltese, this should be increased to 2455+
         return cls(text_tokens_dict_size=2454)

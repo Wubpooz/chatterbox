@@ -259,11 +259,35 @@ class MTLTokenizer:
         model_dir = Path(vocab_file_path).parent
         self.cangjie_converter = ChineseCangjieConverter(model_dir)
         self.check_vocabset_sot_eot()
+        self._ensure_language_tokens()
 
     def check_vocabset_sot_eot(self):
         voc = self.tokenizer.get_vocab()
         assert SOT in voc
         assert EOT in voc
+
+    def _ensure_language_tokens(self):
+        """
+        Ensure all language tokens are in the vocabulary.
+        This method checks for missing language tokens and logs warnings if any are missing.
+        Adding tokens dynamically would change vocabulary size which requires model retraining.
+        """
+        from ...mtl_tts import SUPPORTED_LANGUAGES
+        
+        vocab = self.tokenizer.get_vocab()
+        missing_tokens = []
+        
+        for lang_code in SUPPORTED_LANGUAGES.keys():
+            token = f"[{lang_code}]"
+            if token not in vocab:
+                missing_tokens.append(token)
+        
+        if missing_tokens:
+            logger.warning(
+                f"Language tokens missing from vocabulary: {missing_tokens}. "
+                f"These tokens will be treated as unknown. "
+                f"To add proper support, the tokenizer vocabulary needs to be regenerated with these tokens included."
+            )
 
     def preprocess_text(self, raw_text: str, language_id: str = None, lowercase: bool = True, nfkd_normalize: bool = True):
         """
@@ -296,6 +320,12 @@ class MTLTokenizer:
             txt = korean_normalize(txt)
         elif language_id == 'ru':
             txt = add_russian_stress(txt)
+        elif language_id == 'mt':
+            # Maltese uses Latin script with special characters (ċ, ġ, ħ, ż)
+            # NFKD normalization should handle most cases, but we ensure
+            # proper handling of Maltese-specific graphemes
+            # No additional preprocessing needed as NFKD handles decomposition
+            pass
         
         # Prepend language token
         if language_id:

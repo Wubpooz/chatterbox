@@ -36,6 +36,7 @@ SUPPORTED_LANGUAGES = {
   "ja": "Japanese",
   "ko": "Korean",
   "ms": "Malay",
+  "mt": "Maltese",
   "nl": "Dutch",
   "no": "Norwegian",
   "pl": "Polish",
