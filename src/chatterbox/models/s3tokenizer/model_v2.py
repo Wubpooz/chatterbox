@@ -18,8 +18,8 @@ from typing import Optional, Tuple
 import torch
 from einops import rearrange
 
-from model import Conv1d, LayerNorm, Linear, MultiHeadAttention
-from utils import make_non_pad_mask, mask_to_bias, onnx2torch, merge_tokenized_segments
+from .model import Conv1d, LayerNorm, Linear, MultiHeadAttention
+from .utils import make_non_pad_mask, mask_to_bias, onnx2torch, merge_tokenized_segments
 
 
 @dataclass

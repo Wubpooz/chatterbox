@@ -17,11 +17,11 @@ from typing import Optional, Tuple
 
 import torch
 
-from model import Conv1d, LayerNorm, Linear
+from .model import Conv1d, LayerNorm, Linear
 # Re-use V2 components where possible, but we might need specific V3 tweaks
-from model_v2 import (FSMNMultiHeadAttention,
+from .model_v2 import (FSMNMultiHeadAttention,
                                   FSQVectorQuantization, precompute_freqs_cis)
-from utils import (make_non_pad_mask, mask_to_bias,
+from .utils import (make_non_pad_mask, mask_to_bias,
                                merge_tokenized_segments, onnx2torch_v3)
 
 
