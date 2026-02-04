@@ -20,7 +20,6 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import torch
-import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import CosineAnnealingLR
