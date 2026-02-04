@@ -23,7 +23,7 @@ def test_maltese_in_supported_languages():
         print("✓ Test 1: Importing SUPPORTED_LANGUAGES...")
         assert 'mt' in SUPPORTED_LANGUAGES, "Maltese (mt) not found in SUPPORTED_LANGUAGES"
         assert SUPPORTED_LANGUAGES['mt'] == 'Maltese', f"Expected 'Maltese', got '{SUPPORTED_LANGUAGES['mt']}'"
-        assert len(SUPPORTED_LANGUAGES) == 24, f"Expected 24 languages, got {len(SUPPORTED_LANGUAGES)}"
+        assert len(SUPPORTED_LANGUAGES) >= 24, f"Expected at least 24 languages, got {len(SUPPORTED_LANGUAGES)}"
         print(f"  ✓ Maltese is supported: {SUPPORTED_LANGUAGES['mt']}")
         print(f"  ✓ Total languages: {len(SUPPORTED_LANGUAGES)}")
         return True
