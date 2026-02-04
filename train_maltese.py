@@ -270,7 +270,8 @@ def main():
     
     # Load model
     logger.info("Loading pre-trained model...")
-    model = ChatterboxMultilingualTTS.from_pretrained(device=args.device)
+    # Example: load pre-trained model when training loop is implemented
+    # model = ChatterboxMultilingualTTS.from_pretrained(device=args.device)
     
     # Resize embeddings if vocabulary was expanded
     # Uncomment if you've regenerated the tokenizer vocabulary with [mt] token
