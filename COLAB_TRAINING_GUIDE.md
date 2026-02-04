@@ -13,6 +13,9 @@ The MASRI (Maltese Automatic Speech Recognition and Identification) dataset cont
 - High-quality headset recordings
 - Transcribed text in Maltese
 - Multiple speakers
+- **Features**: `audio`, `speaker_id`, `gender`, `duration`, `normalized_text`
+
+**Important Note**: MASRI_HEADSET_v2 contains only Maltese data. To prevent catastrophic forgetting, you **must** also load Arabic, Italian, and English datasets (see "Handling Single-Language Datasets" section below).
 
 ## Quick Start
 
@@ -26,6 +29,203 @@ The MASRI (Maltese Automatic Speech Recognition and Identification) dataset cont
 ### Option 2: Local Training
 
 See `MALTESE_FINETUNING_GUIDE.md` for local training setup.
+
+## Handling Single-Language Datasets
+
+### The Problem
+
+MASRI_HEADSET_v2 contains **only Maltese data** with features: `audio`, `speaker_id`, `gender`, `duration`, `normalized_text`. However, training on a single language will cause **catastrophic forgetting** - the model will forget Arabic, Italian, and other languages.
+
+### Solution: Add Multi-Language Datasets
+
+You **must** supplement MASRI with other language datasets to maintain model performance. Here are three practical approaches:
+
+#### **Option 1: Use Common Voice (Recommended - Free & Easy)**
+
+Mozilla Common Voice provides free, high-quality TTS data for many languages:
+
+```python
+from datasets import load_dataset
+
+# Maltese (40% of training) - MASRI dataset
+maltese_data = load_dataset("Bluefir/MASRI_HEADSET_v2", split="train")
+print(f"Maltese samples: {len(maltese_data)}")
+
+# Arabic (35% of training) - Common Voice
+arabic_data = load_dataset(
+    "mozilla-foundation/common_voice_16_1", 
+    "ar",
+    split="train[:5000]",  # Adjust based on your Maltese dataset size
+    trust_remote_code=True
+)
+print(f"Arabic samples: {len(arabic_data)}")
+
+# Italian (20% of training) - Common Voice
+italian_data = load_dataset(
+    "mozilla-foundation/common_voice_16_1",
+    "it", 
+    split="train[:3000]",
+    trust_remote_code=True
+)
+print(f"Italian samples: {len(italian_data)}")
+
+# English (5% of training) - Common Voice
+english_data = load_dataset(
+    "mozilla-foundation/common_voice_16_1",
+    "en",
+    split="train[:1000]",
+    trust_remote_code=True
+)
+print(f"English samples: {len(english_data)}")
+```
+
+**Sizing Guidelines**:
+- If MASRI has 10,000 samples (40%), you need:
+  - ~8,750 Arabic samples (35%)
+  - ~5,000 Italian samples (20%)
+  - ~1,250 English samples (5%)
+- Adjust `split="train[:N]"` to match your ratios
+
+**Advantages**:
+- ✅ Free and easily accessible
+- ✅ High quality recordings
+- ✅ Consistent format across languages
+- ✅ Large datasets available
+
+#### **Option 2: Use LoRA (If You Can't Get Multi-Language Data)**
+
+If obtaining multi-language datasets is not possible, use **LoRA (Low-Rank Adaptation)** as a compromise. LoRA minimizes changes to the base model, reducing forgetting:
+
+```python
+# Install PEFT library
+!pip install peft
+
+from peft import LoraConfig, get_peft_model
+
+# Apply LoRA to T3 transformer
+lora_config = LoraConfig(
+    r=16,  # Rank (lower = less capacity but less forgetting)
+    lora_alpha=32,  # Scaling factor
+    target_modules=["q_proj", "v_proj", "k_proj", "o_proj"],  # Attention layers
+    lora_dropout=0.1,
+    bias="none",
+    task_type="CAUSAL_LM"
+)
+
+# Apply LoRA (only to transformer, not embeddings)
+model.t3.tfmr = get_peft_model(model.t3.tfmr, lora_config)
+
+# Still need to train embeddings directly (LoRA doesn't touch them)
+model.t3.text_emb.requires_grad_(True)
+model.t3.text_head.requires_grad_(True)
+
+# Print trainable parameters
+model.t3.tfmr.print_trainable_parameters()
+# Expected: ~1-2% of parameters trainable
+```
+
+**With LoRA Configuration**:
+```python
+CONFIG = {
+    'learning_rate': 2e-4,  # Higher LR for LoRA adapters
+    'embedding_lr': 1e-5,   # Lower LR for embeddings
+    'max_steps': 3000,
+    # ... rest of config
+}
+```
+
+**Trade-offs**:
+- ✅ Reduces forgetting significantly
+- ✅ Trains faster (fewer parameters)
+- ❌ May have slightly lower quality than full fine-tuning
+- ❌ Still need to train embeddings, which can cause some forgetting
+
+#### **Option 3: Very Conservative Training (Last Resort)**
+
+If you absolutely cannot get other datasets or use LoRA, train very conservatively:
+
+```python
+# Ultra-conservative configuration
+CONSERVATIVE_CONFIG = {
+    'learning_rate': 5e-6,  # Half the normal rate
+    'max_steps': 2000,      # Limited training
+    'eval_steps': 100,      # Validate frequently
+    'early_stop_threshold': 0.03,  # Stop if any language drops >3%
+    
+    # Stronger regularization
+    'weight_decay': 0.02,   # Double normal
+    'dropout': 0.15,        # Increase dropout
+    'max_grad_norm': 0.5,   # Aggressive clipping
+}
+```
+
+**Validation Strategy**:
+```python
+# Validate on all languages every 100 steps
+baseline_losses = {
+    'ar': 2.5,  # Record baseline before training
+    'it': 2.3,
+    'en': 2.1,
+}
+
+for step in training:
+    if step % 100 == 0:
+        current_losses = validate_all_languages(model)
+        
+        for lang, current_loss in current_losses.items():
+            baseline = baseline_losses.get(lang, current_loss)
+            degradation = (current_loss - baseline) / baseline
+            
+            if degradation > 0.03:  # >3% degradation
+                print(f"⚠ Warning: {lang} degraded by {degradation*100:.1f}%")
+                print("Consider stopping training or reducing learning rate")
+                # Optionally: stop training or rollback
+```
+
+**Trade-offs**:
+- ⚠ High risk of forgetting
+- ⚠ Limited Maltese learning
+- ⚠ Requires constant monitoring
+- ✅ Works with single dataset
+- ✅ No additional setup needed
+
+### **Recommended Approach**
+
+**Use Option 1 (Common Voice)** - it's the best solution:
+1. Free and easily accessible
+2. Maintains full model capability
+3. Prevents catastrophic forgetting effectively
+4. Simple to implement
+
+Example complete setup:
+
+```python
+from datasets import load_dataset, concatenate_datasets
+
+# Load all datasets
+datasets = {
+    'mt': load_dataset("Bluefir/MASRI_HEADSET_v2", split="train"),
+    'ar': load_dataset("mozilla-foundation/common_voice_16_1", "ar", split="train[:5000]", trust_remote_code=True),
+    'it': load_dataset("mozilla-foundation/common_voice_16_1", "it", split="train[:3000]", trust_remote_code=True),
+    'en': load_dataset("mozilla-foundation/common_voice_16_1", "en", split="train[:1000]", trust_remote_code=True),
+}
+
+# Add language IDs
+for lang_id, dataset in datasets.items():
+    datasets[lang_id] = dataset.map(lambda x: {**x, 'language_id': lang_id})
+
+# Create mixed loader
+from torch.utils.data import DataLoader
+
+loaders = {
+    lang: DataLoader(dataset, batch_size=1, shuffle=True)
+    for lang, dataset in datasets.items()
+}
+
+# Sample according to ratios (40/35/20/5)
+ratios = {'mt': 0.40, 'ar': 0.35, 'it': 0.20, 'en': 0.05}
+mixed_loader = MixedLanguageDataLoader(loaders, ratios)
+```
 
 ## Preventing Catastrophic Forgetting
 
