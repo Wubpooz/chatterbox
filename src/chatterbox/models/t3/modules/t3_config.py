@@ -28,10 +28,10 @@ class T3Config:
     
     @property
     def is_multilingual(self):
-        # Updated to include Maltese (24 languages total)
-        # Original: 2454 tokens for 23 languages
-        # New: 2455+ tokens for 24 languages (added [mt] token)
-        return self.text_tokens_dict_size >= 2454
+        # Multilingual models use vocabulary size of 2454+ tokens
+        # English-only models use 704 tokens
+        # 2454 = 23 languages, 2455+ = 24 languages (with Maltese)
+        return self.text_tokens_dict_size >= 2454 and self.text_tokens_dict_size != 704
 
     @classmethod
     def english_only(cls):

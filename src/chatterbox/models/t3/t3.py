@@ -114,9 +114,19 @@ class T3(nn.Module):
             
         if new_vocab_size < old_vocab_size:
             logger.warning(f"Shrinking vocabulary from {old_vocab_size} to {new_vocab_size}")
-            # Shrink embeddings
+            # Shrink embeddings while preserving existing weights
+            old_text_emb_weight = self.text_emb.weight.data.clone()
+            old_text_head_weight = self.text_head.weight.data.clone()
+            
+            # Create new smaller embeddings
             self.text_emb = nn.Embedding(new_vocab_size, self.dim)
             self.text_head = nn.Linear(self.cfg.hidden_size, new_vocab_size, bias=False)
+            
+            # Copy weights for tokens that remain
+            self.text_emb.weight.data[:new_vocab_size] = old_text_emb_weight[:new_vocab_size]
+            self.text_head.weight.data[:new_vocab_size] = old_text_head_weight[:new_vocab_size]
+            
+            self.hp.text_tokens_dict_size = new_vocab_size
             return
         
         logger.info(f"Expanding text vocabulary from {old_vocab_size} to {new_vocab_size}")

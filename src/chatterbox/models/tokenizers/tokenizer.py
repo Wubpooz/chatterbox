@@ -307,6 +307,12 @@ class MTLTokenizer:
         return text_tokens
 
     def encode(self, txt: str, language_id: str = None, lowercase: bool = True, nfkd_normalize: bool = True):
+        """
+        Encode text to token IDs with language-specific preprocessing.
+        
+        Maltese (mt) uses Latin script with special characters (ċ, ġ, ħ, ż) and
+        is handled by default NFKD normalization without additional preprocessing.
+        """
         txt = self.preprocess_text(txt, language_id=language_id, lowercase=lowercase, nfkd_normalize=nfkd_normalize)
         
         # Language-specific text processing
@@ -320,12 +326,7 @@ class MTLTokenizer:
             txt = korean_normalize(txt)
         elif language_id == 'ru':
             txt = add_russian_stress(txt)
-        elif language_id == 'mt':
-            # Maltese uses Latin script with special characters (ċ, ġ, ħ, ż)
-            # NFKD normalization should handle most cases, but we ensure
-            # proper handling of Maltese-specific graphemes
-            # No additional preprocessing needed as NFKD handles decomposition
-            pass
+        # Note: Maltese uses default NFKD normalization, no special preprocessing needed
         
         # Prepend language token
         if language_id:
