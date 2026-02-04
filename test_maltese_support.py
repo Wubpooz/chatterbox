@@ -32,11 +32,11 @@ def test_maltese_in_supported_languages():
         return False
 
 def test_tokenizer_maltese_preprocessing():
-    """Test that tokenizer can handle Maltese text."""
+    """Test that NFKD normalization handles Maltese special characters."""
     try:
-        print("\n✓ Test 2: Testing tokenizer Maltese preprocessing...")
+        print("\n✓ Test 2: Testing NFKD normalization for Maltese text...")
         
-        # Test text preprocessing logic without full model
+        # Test NFKD normalization that is used for Maltese preprocessing
         from unicodedata import normalize
         
         maltese_text = "Bonġu! Kif int illum?"
@@ -45,7 +45,7 @@ def test_tokenizer_maltese_preprocessing():
         has_special_char = any(char in maltese_text for char in ['ċ', 'ġ', 'ħ', 'ż'])
         assert has_special_char, "Test text should contain Maltese special characters"
         
-        # Apply preprocessing
+        # Apply NFKD normalization (as done by MTLTokenizer.preprocess_text)
         preprocessed = maltese_text.lower()
         preprocessed = normalize("NFKD", preprocessed)
         
@@ -54,7 +54,7 @@ def test_tokenizer_maltese_preprocessing():
         
         print(f"  ✓ Original text: {maltese_text}")
         print(f"  ✓ Preprocessed: {preprocessed}")
-        print(f"  ✓ Maltese special characters handled by NFKD normalization")
+        print(f"  ✓ NFKD normalization completes successfully")
         return True
     except Exception as e:
         print(f"  ✗ Test failed: {e}")

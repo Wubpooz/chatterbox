@@ -7,9 +7,10 @@ This implementation adds comprehensive support for the Maltese language (mt) to 
 
 ### 1. Tokenizer and Size Update ✅
 - **Status**: Complete
-- Added `[mt]` language token to vocabulary
+- Added support for `[mt]` language token in the tokenizer
 - Implemented `_ensure_language_tokens()` method for validation
 - Maltese uses default NFKD normalization for special characters (ċ, ġ, ħ, ż)
+- **Note**: Current repository uses existing vocabulary file, so `[mt]` is treated as `[UNK]` until vocabulary is regenerated (see Production Considerations below)
 
 ### 2. Speech Encoder/Decoder (No Updates Needed) ✅
 - **Status**: Confirmed - No changes made

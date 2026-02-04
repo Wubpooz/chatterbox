@@ -117,10 +117,12 @@ class T3(nn.Module):
             # Shrink embeddings while preserving existing weights
             old_text_emb_weight = self.text_emb.weight.data.clone()
             old_text_head_weight = self.text_head.weight.data.clone()
+            old_device = old_text_emb_weight.device
+            old_dtype = old_text_emb_weight.dtype
             
-            # Create new smaller embeddings
-            self.text_emb = nn.Embedding(new_vocab_size, self.dim)
-            self.text_head = nn.Linear(self.cfg.hidden_size, new_vocab_size, bias=False)
+            # Create new smaller embeddings on the same device and dtype
+            self.text_emb = nn.Embedding(new_vocab_size, self.dim, device=old_device, dtype=old_dtype)
+            self.text_head = nn.Linear(self.cfg.hidden_size, new_vocab_size, bias=False, device=old_device, dtype=old_dtype)
             
             # Copy weights for tokens that remain
             self.text_emb.weight.data[:new_vocab_size] = old_text_emb_weight[:new_vocab_size]
@@ -134,10 +136,13 @@ class T3(nn.Module):
         # Create new embeddings
         old_text_emb_weight = self.text_emb.weight.data.clone()
         old_text_head_weight = self.text_head.weight.data.clone()
+        old_device = old_text_emb_weight.device
+        old_dtype = old_text_emb_weight.dtype
         
         # Initialize new embeddings with statistics from existing embeddings
-        new_text_emb = nn.Embedding(new_vocab_size, self.dim)
-        new_text_head = nn.Linear(self.cfg.hidden_size, new_vocab_size, bias=False)
+        # Preserve device and dtype to avoid mismatches after model.to(device) or .half()
+        new_text_emb = nn.Embedding(new_vocab_size, self.dim, device=old_device, dtype=old_dtype)
+        new_text_head = nn.Linear(self.cfg.hidden_size, new_vocab_size, bias=False, device=old_device, dtype=old_dtype)
         
         # Copy old weights
         new_text_emb.weight.data[:old_vocab_size] = old_text_emb_weight
