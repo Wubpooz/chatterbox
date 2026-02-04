@@ -4,10 +4,10 @@ import numpy as np
 import librosa
 import torch
 import torch.nn.functional as F
-from .utils import padding
-from .model_v2 import (
+from utils import padding
+from model_v2 import (
     S3TokenizerV2,
-    ModelConfig,
+    ModelConfig
 )
 
 
