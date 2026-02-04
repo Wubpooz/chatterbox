@@ -31,7 +31,7 @@ class T3Config:
         # Multilingual models use vocabulary size of 2454+ tokens
         # English-only models use 704 tokens
         # 2454 = 23 languages, 2455+ = 24 languages (with Maltese)
-        return self.text_tokens_dict_size >= 2454 and self.text_tokens_dict_size != 704
+        return self.text_tokens_dict_size >= 2454
 
     @classmethod
     def english_only(cls):

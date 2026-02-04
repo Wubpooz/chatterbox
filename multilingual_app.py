@@ -70,6 +70,7 @@ LANGUAGE_CONFIG = {
     "mt": {
         # NOTE: Using Arabic audio reference as placeholder since Maltese shares Semitic roots with Arabic
         # For production, replace with Maltese-specific audio reference for better voice characteristics
+        # Expected format: "https://storage.googleapis.com/chatterbox-demo-samples/mtl_prompts/mt_[gender].flac"
         "audio": "https://storage.googleapis.com/chatterbox-demo-samples/mtl_prompts/ar_f/ar_prompts2.flac",
         "text": "Ix-xahar li għadda, laħaqna marka ġdida b'żewġ biljun vista fuq il-kanal tagħna tal-YouTube."
     },

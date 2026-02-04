@@ -153,6 +153,8 @@ class T3(nn.Module):
             ) * std_emb
             
             # Initialize new head weights similarly
+            # Note: Linear layer weight shape is (out_features, in_features) = (vocab_size, hidden_size)
+            # This differs from embedding shape (vocab_size, embedding_dim) but is correct for Linear layers
             mean_head = old_text_head_weight.mean(dim=0)
             std_head = old_text_head_weight.std(dim=0)
             new_text_head.weight.data[old_vocab_size:] = mean_head + torch.randn(
