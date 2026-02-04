@@ -141,7 +141,7 @@ class ChatterboxTurboTTS:
 
         ve = VoiceEncoder()
         ve.load_state_dict(
-            load_file(ckpt_dir / "ve.safetensors", device=str(map_location) if map_location else "cuda")
+            load_file(ckpt_dir / "ve.safetensors", device=device)
         )
         ve.to(device).eval()
 
@@ -155,7 +155,7 @@ class ChatterboxTurboTTS:
         hp.emotion_adv = False
 
         t3 = T3(hp)
-        t3_state = load_file(ckpt_dir / "t3_turbo_v1.safetensors", device=str(map_location) if map_location else "cuda")
+        t3_state = load_file(ckpt_dir / "t3_turbo_v1.safetensors", device=device)
         if "model" in t3_state.keys():
             t3_state = t3_state["model"][0]
         t3.load_state_dict(t3_state)
@@ -163,7 +163,7 @@ class ChatterboxTurboTTS:
         t3.to(device).eval()
 
         s3gen = S3Gen(meanflow=True)
-        weights = load_file(ckpt_dir / "s3gen_meanflow.safetensors", device=str(map_location) if map_location else "cuda")
+        weights = load_file(ckpt_dir / "s3gen_meanflow.safetensors", device=device)
         s3gen.load_state_dict(
             weights, strict=True
         )

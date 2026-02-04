@@ -52,7 +52,7 @@ class ChatterboxVC:
 
         s3gen = S3Gen()
         s3gen.load_state_dict(
-            load_file(ckpt_dir / "s3gen.safetensors", device=str(map_location) if map_location else "cuda"), strict=False
+            load_file(ckpt_dir / "s3gen.safetensors", device=device), strict=False
         )
         s3gen.to(device).eval()
 
