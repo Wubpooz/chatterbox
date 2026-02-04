@@ -1,4 +1,4 @@
-![Chatterbox Turbo Image](./Chatterbox-Turbo.jpg)
+![Chatterbox Turbo Image](./docs/Chatterbox-Turbo.jpg)
 
 
 # Chatterbox TTS
