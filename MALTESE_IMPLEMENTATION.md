@@ -143,6 +143,8 @@ segments = [
 - Current implementation uses existing vocabulary file
 - `[mt]` token will be treated as unknown until vocabulary regenerated
 - For optimal results, regenerate tokenizer vocabulary to include `[mt]`
+- **See `VOCABULARY_UPDATE_GUIDE.md` for step-by-step instructions to update the vocabulary**
+- **Use `update_vocabulary.py` script for automated vocabulary update**
 
 ### Audio Reference
 - Currently uses Arabic audio as placeholder
