@@ -154,7 +154,7 @@ print(f"Model embeddings resized to {new_vocab_size}")
 # Save updated model checkpoint
 # (This step saves the resized model for future use)
 import torch
-torch.save(model.t3.state_dict(), "t3_mtl24ls_v1.safetensors")
+torch.save(model.t3.state_dict(), "t3_mtl24ls_v1.pt")
 ```
 
 ### Option 2: Retrain Tokenizer (More Complex)
