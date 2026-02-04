@@ -193,7 +193,7 @@ class ChatterboxMultilingualTTS:
 
         conds = None
         if (builtin_voice := ckpt_dir / "conds.pt").exists():
-            conds = Conditionals.load(builtin_voice).to(device)
+            conds = Conditionals.load(builtin_voice, map_location=map_location).to(device)
 
         return cls(t3, s3gen, ve, tokenizer, device, conds=conds)
 
