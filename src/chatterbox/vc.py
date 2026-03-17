@@ -50,11 +50,11 @@ class ChatterboxVC:
             states = torch.load(builtin_voice, map_location=map_location)
             ref_dict = states['gen']
 
-        s3gen = S3Gen().to(device)
+        s3gen = S3Gen()
         s3gen.load_state_dict(
-            load_file(ckpt_dir / "s3gen.safetensors", device=device), strict=False
+            load_file(ckpt_dir / "s3gen.safetensors", device="cpu"), strict=False
         )
-        s3gen.eval()
+        s3gen.to(device).eval()
 
         return cls(s3gen, device, ref_dict=ref_dict)
 
