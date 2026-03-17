@@ -90,6 +90,89 @@ class T3(nn.Module):
     def device(self):
         return self.speech_head.weight.device
 
+    def resize_text_token_embeddings(self, new_vocab_size: int):
+        """
+        Safely resize text token embeddings to accommodate new vocabulary tokens.
+        This is useful when adding new language tokens to the tokenizer.
+        
+        Args:
+            new_vocab_size (int): The new vocabulary size
+            
+        Returns:
+            None
+            
+        Note:
+            - New embeddings are initialized with mean and std of existing embeddings
+            - This helps prevent catastrophic forgetting by maintaining embedding distribution
+            - Speech embeddings and decoder are not affected
+        """
+        old_vocab_size = self.text_emb.num_embeddings
+        
+        if new_vocab_size == old_vocab_size:
+            logger.info(f"Text vocabulary size unchanged: {old_vocab_size}")
+            return
+            
+        if new_vocab_size < old_vocab_size:
+            logger.warning(f"Shrinking vocabulary from {old_vocab_size} to {new_vocab_size}")
+            # Shrink embeddings while preserving existing weights
+            old_text_emb_weight = self.text_emb.weight.data.clone()
+            old_text_head_weight = self.text_head.weight.data.clone()
+            old_device = old_text_emb_weight.device
+            old_dtype = old_text_emb_weight.dtype
+            
+            # Create new smaller embeddings on the same device and dtype
+            self.text_emb = nn.Embedding(new_vocab_size, self.dim, device=old_device, dtype=old_dtype)
+            self.text_head = nn.Linear(self.cfg.hidden_size, new_vocab_size, bias=False, device=old_device, dtype=old_dtype)
+            
+            # Copy weights for tokens that remain
+            self.text_emb.weight.data[:new_vocab_size] = old_text_emb_weight[:new_vocab_size]
+            self.text_head.weight.data[:new_vocab_size] = old_text_head_weight[:new_vocab_size]
+            
+            self.hp.text_tokens_dict_size = new_vocab_size
+            return
+        
+        logger.info(f"Expanding text vocabulary from {old_vocab_size} to {new_vocab_size}")
+        
+        # Create new embeddings
+        old_text_emb_weight = self.text_emb.weight.data.clone()
+        old_text_head_weight = self.text_head.weight.data.clone()
+        old_device = old_text_emb_weight.device
+        old_dtype = old_text_emb_weight.dtype
+        
+        # Initialize new embeddings with statistics from existing embeddings
+        # Preserve device and dtype to avoid mismatches after model.to(device) or .half()
+        new_text_emb = nn.Embedding(new_vocab_size, self.dim, device=old_device, dtype=old_dtype)
+        new_text_head = nn.Linear(self.cfg.hidden_size, new_vocab_size, bias=False, device=old_device, dtype=old_dtype)
+        
+        # Copy old weights
+        new_text_emb.weight.data[:old_vocab_size] = old_text_emb_weight
+        new_text_head.weight.data[:old_vocab_size] = old_text_head_weight
+        
+        # Initialize new token embeddings with mean and std of existing embeddings
+        # This helps with training stability and prevents catastrophic forgetting
+        with torch.no_grad():
+            mean_emb = old_text_emb_weight.mean(dim=0)
+            std_emb = old_text_emb_weight.std(dim=0)
+            new_text_emb.weight.data[old_vocab_size:] = mean_emb + torch.randn(
+                new_vocab_size - old_vocab_size, self.dim, device=old_text_emb_weight.device
+            ) * std_emb
+            
+            # Initialize new head weights similarly
+            # Note: Linear layer weight shape is (out_features, in_features) = (vocab_size, hidden_size)
+            # This differs from embedding shape (vocab_size, embedding_dim) but is correct for Linear layers
+            mean_head = old_text_head_weight.mean(dim=0)
+            std_head = old_text_head_weight.std(dim=0)
+            new_text_head.weight.data[old_vocab_size:] = mean_head + torch.randn(
+                new_vocab_size - old_vocab_size, self.cfg.hidden_size, device=old_text_head_weight.device
+            ) * std_head
+        
+        # Replace embeddings
+        self.text_emb = new_text_emb
+        self.text_head = new_text_head
+        self.hp.text_tokens_dict_size = new_vocab_size
+        
+        logger.info(f"Text embeddings resized successfully to {new_vocab_size}")
+
     def prepare_conditioning(self, t3_cond: T3Cond):
         """
         Token cond data needs to be embedded, so that needs to be here instead of in `T3CondEnc`.
