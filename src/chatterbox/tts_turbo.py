@@ -155,7 +155,7 @@ class ChatterboxTurboTTS:
         hp.emotion_adv = False
 
         t3 = T3(hp)
-        t3_state = load_file(ckpt_dir / "t3_turbo_v1.safetensors", device=device)
+        t3_state = load_file(ckpt_dir / "t3_turbo_v1.safetensors")
         if "model" in t3_state.keys():
             t3_state = t3_state["model"][0]
         t3.load_state_dict(t3_state)
@@ -163,7 +163,7 @@ class ChatterboxTurboTTS:
         t3.to(device).eval()
 
         s3gen = S3Gen(meanflow=True)
-        weights = load_file(ckpt_dir / "s3gen_meanflow.safetensors", device=device)
+        weights = load_file(ckpt_dir / "s3gen_meanflow.safetensors")
         s3gen.load_state_dict(
             weights, strict=True
         )

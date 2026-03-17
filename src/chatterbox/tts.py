@@ -137,12 +137,12 @@ class ChatterboxTTS:
 
         ve = VoiceEncoder()
         ve.load_state_dict(
-            load_file(ckpt_dir / "ve.safetensors", device=device)
+            load_file(ckpt_dir / "ve.safetensors", device="cpu")
         )
         ve.to(device).eval()
 
         t3 = T3()
-        t3_state = load_file(ckpt_dir / "t3_cfg.safetensors", device=device)
+        t3_state = load_file(ckpt_dir / "t3_cfg.safetensors", device="cpu")
         if "model" in t3_state.keys():
             t3_state = t3_state["model"][0]
         t3.load_state_dict(t3_state)
@@ -150,7 +150,7 @@ class ChatterboxTTS:
 
         s3gen = S3Gen()
         s3gen.load_state_dict(
-            load_file(ckpt_dir / "s3gen.safetensors", device=device), strict=False
+            load_file(ckpt_dir / "s3gen.safetensors", device="cpu"), strict=False
         )
         s3gen.to(device).eval()
 
