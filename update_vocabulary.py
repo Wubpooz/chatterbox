@@ -67,6 +67,11 @@ def add_maltese_token(vocab_file, output_file):
     if '[mt]' in vocab_dict:
         print("✓ [mt] token already exists in vocabulary")
         print(f"  Token ID: {vocab_dict['[mt]']}")
+        # Even if the token already exists, ensure the output file is written
+        print(f"\nSaving vocabulary (unchanged) to: {output_file}")
+        with open(output_file, 'w', encoding='utf-8') as f:
+            json.dump(vocab_json, f, ensure_ascii=False, indent=2)
+        print("✓ Vocabulary saved successfully (no changes made)")
         return True
     
     # Find the highest token ID
